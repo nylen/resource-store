@@ -1,17 +1,26 @@
-var crypto = require('crypto'),
-    events = require('events'),
-    fs     = require('fs-extra'),
-    path   = require('path'),
-    util   = require('util'),
-    Walker = require('walker');
+var backends = require('./lib/backends'),
+    events   = require('events'),
+    util     = require('util');
 
 JSON.stringifyCanonical = require('canonical-json');
 
-function ResourceStore(dir, generator/*(key, baseFilename, cb(err, data))*/) {
+// generator(key, extra, cb(err, value))
+function ResourceStore(backend, generator) {
     var self = this;
 
+    if (backend && !generator) {
+        generator = backend;
+        backend = new ResourceStore.MemoryBackend();
+    }
+
+    if (typeof backend == 'string') {
+        var dirname  = backend;
+        self.backend = new ResourceStore.FileBackend(dirname);
+    } else {
+        self.backend = backend;
+    }
+
     self.generator      = generator;
-    self.dir            = dir;
     self.valueCallbacks = {};
     self.running        = {};
 
@@ -20,12 +29,15 @@ function ResourceStore(dir, generator/*(key, baseFilename, cb(err, data))*/) {
 
 util.inherits(ResourceStore, events.EventEmitter);
 
-ResourceStore.prototype.get = function(key, cb/*(err, data, baseFilename)*/) {
+backends.addTo(ResourceStore);
+
+// cb(err, value, extra)
+ResourceStore.prototype.get = function(key, cb) {
     var self = this;
 
     var keyStr = JSON.stringifyCanonical(key);
 
-    if (keyStr in self.valueCallbacks) {
+    if (util.isArray(self.valueCallbacks[keyStr])) {
         self.valueCallbacks[keyStr].push(cb);
     } else {
         self.valueCallbacks[keyStr] = [cb];
@@ -37,100 +49,84 @@ ResourceStore.prototype.get = function(key, cb/*(err, data, baseFilename)*/) {
 
     self.running[keyStr] = +new Date;
 
-    var keyData = self._keyData(keyStr);
+    self.backend.get(keyStr, function(err, data, extraKeyInfo) {
+        if (err) {
+            // Something went wrong in the backend
+            self.emit('valueReady', keyStr, err);
 
-    fs.exists(keyData.jsonFilename, function(exists) {
-        if (exists) {
-            fs.readJSON(keyData.jsonFilename, function(err, data) {
-                self.emit('valueReady', keyStr, err, data.results, keyData.baseFilename);
-            });
-        } else {
-            fs.mkdirp(keyData.filePath, function(err) {
+        } else if (data === false) {
+            // The resource for this key is not stored yet; generate it
+            data = extraKeyInfo || {};
+            data.key           = key;
+            data.createStarted = self.running[keyStr];
+            self.generator(key, data, function(err, value) {
                 if (err) {
                     self.emit('valueReady', keyStr, err);
                     return;
                 }
-                self.generator(key, keyData.baseFilename, function(err, results) {
+                data.value       = value;
+                data.createEnded = +new Date;
+                self.backend.set(keyStr, data, function(err) {
                     if (err) {
                         self.emit('valueReady', keyStr, err);
-                        return;
+                    } else {
+                        self.emit('valueReady', keyStr, err, data.value, data);
                     }
-                    var data = {
-                        key           : key,
-                        createStarted : self.running[keyStr],
-                        createEnded   : +new Date,
-                        results       : results
-                    };
-                    fs.writeJSON(keyData.jsonFilename, data, function(err) {
-                        if (err) {
-                            // show warning?
-                        }
-                        self.emit('valueReady', keyStr, null, results, keyData.baseFilename);
-                    });
                 });
             });
+
+        } else {
+            // The backend already had the resource for this key
+            self.emit('valueReady', keyStr, err, data.value, data);
+
         }
     });
 };
 
-ResourceStore.prototype._keyData = function(keyStr) {
-    var self = this;
-
-    var keyHash = crypto
-            .createHash('md5')
-            .update(keyStr)
-            .digest('hex'),
-        filePath = path.resolve(
-            self.dir,
-            keyHash.substring(0, 2),
-            keyHash.substring(2, 4)),
-        baseFilename = path.join(filePath, keyHash),
-        jsonFilename = baseFilename + '.json';
-
-    return {
-        filePath     : filePath,
-        baseFilename : baseFilename,
-        jsonFilename : jsonFilename
-    };
-};
-
-ResourceStore.prototype._valueReady = function(keyStr, err, data, baseFilename) {
+ResourceStore.prototype._valueReady = function(keyStr, err, value, extra) {
     var self = this;
 
     delete self.running[keyStr];
     self.valueCallbacks[keyStr].forEach(function(cb) {
-        cb(err, data, baseFilename);
+        cb(err, value, extra);
     });
     delete self.valueCallbacks[keyStr];
 };
 
-ResourceStore.prototype.list = function(cbData, cbDone) {
+// cbEntry(err, key, value, extra)
+// cbDone(err, numEntries)
+ResourceStore.prototype.list = function(cbEntry, cbDone) {
     var self = this;
 
-    var walkerDone     = false,
-        numFilesFound  = 0,
-        numFilesCalled = 0;
-    Walker(self.dir).on('file', function(file, stat) {
-        var match, baseFilename;
-        if (match = file.match(/^(.*\b[a-z0-9]{32})\.json$/)) {
-            baseFilename = match[1];
-            numFilesFound++;
-            fs.readJSON(file, function(err, data) {
-                if (!err) {
-                    cbData(data.key, data.results, baseFilename, data);
-                }
-                if (walkerDone && cbDone && numFilesFound == ++numFilesCalled) {
-                    cbDone(numFilesCalled);
-                    cbDone = null;
-                }
-            });
+    // TODO: error handling?  if an error is passed to cbEntry, what should we
+    // do?  not call cbEntry any more times?  call cbDone immediately?  wait
+    // until cbDone is called by the backend, then call it with the error we
+    // save from cbEntry?
+
+    self.backend.list(function(err, key, data) {
+
+        if (err) {
+            cbEntry(err);
+        } else {
+            // The backend will send string keys, if it knows its own keys at
+            // all (for example, FileBackend stores data in files named by the
+            // MD5 hash of the key).  We want the object keys, which we can
+            // always get from what we saved to the backend earlier.
+            //
+            // If we did happen to need the string key for anything, this would
+            // be the place to get it if the backend doesn't store it.  That
+            // way the backend doesn't need to care about the structure of the
+            // data we're storing in it.
+            // if (typeof key != 'string') {
+            //     key = JSON.stringifyCanonical(data.key);
+            // }
+            cbEntry(null, data.key, data.value, data);
         }
-    }).on('end', function() {
-        walkerDone = true;
-        if (cbDone && numFilesFound == numFilesCalled) {
-            cbDone(numFilesCalled);
-            cbDone = null;
-        }
+
+    }, function(err, numEntries) {
+
+        cbDone(err, numEntries);
+
     });
 };
 

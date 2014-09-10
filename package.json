@@ -5,10 +5,10 @@
     "version"     : "0.0.1",
     "repository"  : {
         "type" : "git",
-        "url"  : "https://github.com/nylen/node-resource-store"
+        "url"  : "https://github.com/nylen/resource-store"
     },
     "bugs" : {
-        "url" : "https://github.com/nylen/node-resource-store/issues"
+        "url" : "https://github.com/nylen/resource-store/issues"
     },
     "license"  : "MIT",
     "keywords" : [
@@ -28,6 +28,7 @@
     },
     "dependencies" : {
         "canonical-json" : "0.0.4",
+        "clone"          : "~0.1.18",
         "fs-extra"       : "~0.11.1",
         "walker"         : "~1.0.6"
     }
