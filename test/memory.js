@@ -229,6 +229,15 @@ describe('ResourceStore with MemoryBackend', function() {
         }
     });
 
+    it('should delete entries', function(done) {
+        simpleStore.backend.remove(JSON.stringifyCanonical({
+            concurrent : 'test2'
+        }), function(err) {
+            should.not.exist(err);
+            done();
+        });
+    });
+
     it('should list stored entries again', function(done) {
         var list = [];
         simpleStore.list(function(err, key, value, extra) {
@@ -263,14 +272,6 @@ describe('ResourceStore with MemoryBackend', function() {
                     },
                     value : {
                         concurrent : 'test1',
-                        _savedBy   : savedBy
-                    }
-                }, {
-                    key : {
-                        concurrent : 'test2'
-                    },
-                    value : {
-                        concurrent : 'test2',
                         _savedBy   : savedBy
                     }
                 }, {
