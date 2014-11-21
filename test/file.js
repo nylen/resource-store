@@ -17,7 +17,7 @@ describe('ResourceStore with FileBackend', function() {
 
     before(function() {
         simpleStore = new ResourceStore(
-            path.join(__dirname, 'store'),
+            storePath,
             function(key, extra, cb) {
                 generatorCalls++;
                 setTimeout(function() {
