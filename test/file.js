@@ -54,6 +54,7 @@ describe('ResourceStore with FileBackend', function() {
             generatorCalls.should.equal(1);
 
             savedExtraData = clone(extra);
+            savedExtraData.wasCached = true;
 
             var date   = +new Date,
                 margin = 30; // msec
@@ -129,6 +130,7 @@ describe('ResourceStore with FileBackend', function() {
                 extra : extra
             });
             savedExtraData.lastRetrieved = extra.lastRetrieved;
+            delete savedExtraData.wasCached;
         }, function(err) {
             list.should.eql([
                 {

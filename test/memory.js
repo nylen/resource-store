@@ -45,6 +45,7 @@ describe('ResourceStore with MemoryBackend', function() {
             generatorCalls.should.equal(1);
 
             savedExtraData = clone(extra);
+            savedExtraData.wasCached = true;
 
             var date   = +new Date,
                 margin = 10; // msec
@@ -118,6 +119,7 @@ describe('ResourceStore with MemoryBackend', function() {
 
     it('should list stored entries', function(done) {
         var list = [];
+        delete savedExtraData.wasCached;
         simpleStore.list(function(err, key, value, extra) {
             list.push({
                 key   : key,
@@ -156,6 +158,7 @@ describe('ResourceStore with MemoryBackend', function() {
                     prop2    : 'value2',
                     _savedBy : savedBy
                 });
+                extra.wasCached.should.eql(true);
 
                 var list = [];
                 simpleStore.list(function(err, key, value, extra) {

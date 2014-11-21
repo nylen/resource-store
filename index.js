@@ -77,6 +77,7 @@ ResourceStore.prototype.get = function(key, cb) {
 
         } else {
             // The backend already had the resource for this key
+            data.wasCached = true;
             self.emit('valueReady', keyStr, err, data.value, data);
 
         }
