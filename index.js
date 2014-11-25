@@ -10,7 +10,7 @@ function ResourceStore(backend, generator) {
 
     if (backend && !generator) {
         generator = backend;
-        backend = new ResourceStore.MemoryBackend();
+        backend   = new ResourceStore.MemoryBackend();
     }
 
     if (typeof backend == 'string') {
@@ -20,11 +20,10 @@ function ResourceStore(backend, generator) {
         self.backend = backend;
     }
 
-    self.generator      = generator;
-    self.valueCallbacks = {};
-    self.running        = {};
-
-    self.on('valueReady', self._valueReady);
+    self.generator = generator;
+    self._tasks    = {};
+    self._running  = {};
+    self._cached   = {};
 }
 
 util.inherits(ResourceStore, events.EventEmitter);
@@ -35,42 +34,44 @@ backends.addTo(ResourceStore);
 ResourceStore.prototype.get = function(key, cb) {
     var self = this;
 
-    var keyStr = JSON.stringifyCanonical(key);
+    self._addTask(key, '_get', cb);
+};
 
-    if (util.isArray(self.valueCallbacks[keyStr])) {
-        self.valueCallbacks[keyStr].push(cb);
-    } else {
-        self.valueCallbacks[keyStr] = [cb];
-    }
+// cb(err, value, extra)
+ResourceStore.prototype._get = function(key, keyStr, cb) {
+    var self = this;
 
-    if (self.running[keyStr]) {
+    var cached = self._cached[keyStr];
+    if (cached) {
+        process.nextTick(function() {
+            cb(null, cached.value, cached);
+        });
         return;
     }
-
-    self.running[keyStr] = +new Date;
 
     self.backend.get(keyStr, function(err, data, extraKeyInfo) {
         if (err) {
             // Something went wrong in the backend
-            self.emit('valueReady', keyStr, err);
+            cb(err);
 
         } else if (data === false) {
             // The resource for this key is not stored yet; generate it
             data = extraKeyInfo || {};
             data.key           = key;
-            data.createStarted = self.running[keyStr];
+            data.createStarted = self._running[keyStr];
             self.generator(key, data, function(err, value) {
                 if (err) {
-                    self.emit('valueReady', keyStr, err);
+                    cb(err);
                     return;
                 }
                 data.value       = value;
                 data.createEnded = +new Date;
                 self.backend.set(keyStr, data, function(err) {
                     if (err) {
-                        self.emit('valueReady', keyStr, err);
+                        cb(err);
                     } else {
-                        self.emit('valueReady', keyStr, err, data.value, data);
+                        self._cached[keyStr] = data;
+                        cb(err, data.value, data);
                     }
                 });
             });
@@ -78,20 +79,53 @@ ResourceStore.prototype.get = function(key, cb) {
         } else {
             // The backend already had the resource for this key
             data.wasCached = true;
-            self.emit('valueReady', keyStr, err, data.value, data);
+            cb(err, data.value, data);
 
         }
     });
 };
 
-ResourceStore.prototype._valueReady = function(keyStr, err, value, extra) {
+ResourceStore.prototype._addTask = function(key, method, cb) {
     var self = this;
 
-    delete self.running[keyStr];
-    self.valueCallbacks[keyStr].forEach(function(cb) {
-        cb(err, value, extra);
+    var task = {
+            key    : key,
+            method : method,
+            cb     : cb
+        },
+        keyStr = JSON.stringifyCanonical(key);
+
+    if (util.isArray(self._tasks[keyStr])) {
+        self._tasks[keyStr].push(task);
+    } else {
+        self._tasks[keyStr] = [task];
+    }
+
+    self._runTask(keyStr);
+};
+
+ResourceStore.prototype._runTask = function(keyStr) {
+    var self = this;
+
+    if (self._running[keyStr]) {
+        return;
+    }
+
+    self._running[keyStr] = +new Date;
+
+    var task = self._tasks[keyStr].shift();
+
+    self[task.method](task.key, keyStr, function() {
+        task.cb.apply(self, arguments);
+
+        delete self._running[keyStr];
+        if (self._tasks[keyStr].length) {
+            self._runTask(keyStr);
+        } else {
+            delete self._tasks[keyStr];
+            delete self._cached[keyStr];
+        }
     });
-    delete self.valueCallbacks[keyStr];
 };
 
 // cbEntry(err, key, value, extra)
