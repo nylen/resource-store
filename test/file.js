@@ -240,10 +240,55 @@ describe('ResourceStore with FileBackend', function() {
     });
 
     it('should delete entries', function(done) {
-        simpleStore.backend.delete(JSON.stringifyCanonical({
-            concurrent : 'test2'
-        }), function(err) {
+        simpleStore.delete({ concurrent : 'test2' }, function(err) {
             should.not.exist(err);
+            done();
+        });
+    });
+
+    it('should handle interleaved gets and deletes', function(done) {
+        var calls    = 0,
+            expected = {
+                interleaved : true,
+                _savedBy    : savedBy
+            };
+
+        simpleStore.get({ interleaved : true }, function(err, value, extra) {
+            should.not.exist(err);
+            value.should.eql(expected);
+            (++calls).should.equal(1);
+            generatorCalls.should.equal(1);
+        });
+
+        simpleStore.get({ interleaved : true }, function(err, value, extra) {
+            should.not.exist(err);
+            value.should.eql(expected);
+            (++calls).should.equal(2);
+            generatorCalls.should.equal(1);
+        });
+
+        simpleStore.delete({ interleaved : true }, function(err) {
+            should.not.exist(err);
+            (++calls).should.equal(3);
+        });
+
+        simpleStore.get({ interleaved : true }, function(err, value, extra) {
+            should.not.exist(err);
+            value.should.eql(expected);
+            (++calls).should.equal(4);
+            generatorCalls.should.equal(2);
+        });
+
+        simpleStore.get({ interleaved : true }, function(err, value, extra) {
+            should.not.exist(err);
+            value.should.eql(expected);
+            (++calls).should.equal(5);
+            generatorCalls.should.equal(2);
+        });
+
+        simpleStore.delete({ interleaved : true }, function(err) {
+            should.not.exist(err);
+            (++calls).should.equal(6);
             done();
         });
     });

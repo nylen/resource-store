@@ -85,6 +85,22 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
     });
 };
 
+// cb(err)
+ResourceStore.prototype.delete = function(key, cb) {
+    var self = this;
+
+    self._addTask(key, '_delete', cb);
+};
+
+ResourceStore.prototype._delete = function(key, keyStr, cb) {
+    var self = this;
+
+    self.backend.delete(keyStr, function(err) {
+        delete self._cached[keyStr];
+        cb(err);
+    });
+};
+
 ResourceStore.prototype._addTask = function(key, method, cb) {
     var self = this;
 
