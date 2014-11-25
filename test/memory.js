@@ -233,7 +233,7 @@ describe('ResourceStore with MemoryBackend', function() {
     });
 
     it('should delete entries', function(done) {
-        simpleStore.backend.remove(JSON.stringifyCanonical({
+        simpleStore.backend.delete(JSON.stringifyCanonical({
             concurrent : 'test2'
         }), function(err) {
             should.not.exist(err);
