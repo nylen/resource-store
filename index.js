@@ -23,7 +23,11 @@ function ResourceStore(backend, generator) {
     self.generator = generator;
     self._tasks    = {};
     self._running  = {};
-    self._cached   = {};
+
+    var shouldCache = self.backend.shouldCache;
+    if (shouldCache || typeof shouldCache == 'undefined') {
+        self._cached = {};
+    }
 }
 
 util.inherits(ResourceStore, events.EventEmitter);
@@ -41,12 +45,14 @@ ResourceStore.prototype.get = function(key, cb) {
 ResourceStore.prototype._get = function(key, keyStr, cb) {
     var self = this;
 
-    var cached = self._cached[keyStr];
-    if (cached) {
-        process.nextTick(function() {
-            cb(null, cached.value, cached);
-        });
-        return;
+    if (self._cached) {
+        var cached = self._cached[keyStr];
+        if (cached) {
+            process.nextTick(function() {
+                cb(null, cached.value, cached);
+            });
+            return;
+        }
     }
 
     self.backend.get(keyStr, function(err, data, extraKeyInfo) {
@@ -70,7 +76,9 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
                     if (err) {
                         cb(err);
                     } else {
-                        self._cached[keyStr] = data;
+                        if (self._cached) {
+                            self._cached[keyStr] = data;
+                        }
                         cb(err, data.value, data);
                     }
                 });
@@ -96,7 +104,9 @@ ResourceStore.prototype._delete = function(key, keyStr, cb) {
     var self = this;
 
     self.backend.delete(keyStr, function(err) {
-        delete self._cached[keyStr];
+        if (self._cached) {
+            delete self._cached[keyStr];
+        }
         cb(err);
     });
 };
@@ -139,7 +149,9 @@ ResourceStore.prototype._runTask = function(keyStr) {
             self._runTask(keyStr);
         } else {
             delete self._tasks[keyStr];
-            delete self._cached[keyStr];
+            if (self._cached) {
+                delete self._cached[keyStr];
+            }
         }
     });
 };
