@@ -70,8 +70,9 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
                     cb(err);
                     return;
                 }
-                data.value       = value;
-                data.createEnded = +new Date;
+                data.value         = value;
+                data.createEnded   = +new Date;
+                data.lastRetrieved = data.createEnded;
                 self.backend.set(keyStr, data, function(err) {
                     if (err) {
                         cb(err);
