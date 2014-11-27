@@ -189,7 +189,9 @@ ResourceStore.prototype.list = function(cbEntry, cbDone) {
 
     }, function(err, numEntries) {
 
-        cbDone(err, numEntries);
+        if (typeof cbDone == 'function') {
+            cbDone(err, numEntries);
+        }
 
     });
 };
