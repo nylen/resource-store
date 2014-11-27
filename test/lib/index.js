@@ -252,6 +252,8 @@ exports.testInterleaved = function(done) {
         var foundInterleaved = 0;
         if (i < 10) {
             exports.store.list(function(err, key, value, extra) {
+                should.exist(value);
+                should.exist(extra);
                 if (key.interleaved) {
                     foundInterleaved = true;
                 }
