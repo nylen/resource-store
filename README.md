@@ -109,6 +109,8 @@ are millisecond-precision Unix timestamps, the result of `+new Date`):
 - `lastRetrieved` - set when a value is generated or retrieved from the storage
   backend.  Available in `get` and `list`, but most useful in `list` to allow
   deleting old data.
+- `wasCached` - available in `get` and set to `true` if the requested value was
+  already cached (i.e. the generator function *was not* called).
 - `baseFilename` - available in all functions if using the `FileBackend` for
   storage.  This is the data filename where the value will be stored, without
   the `.json` extension.  This is useful for storing additional binary data
