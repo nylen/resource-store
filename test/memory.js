@@ -71,4 +71,8 @@ describe('ResourceStore with MemoryBackend', function() {
     it('should list stored entries again', function(done) {
         lib.testList2(done);
     });
+
+    it.skip('should delete entries when they expire', function(done) {
+        lib.testExpires(done);
+    });
 });

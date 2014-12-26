@@ -25,6 +25,10 @@ The `extra` parameter passed to the generator function is an object that can be
 used to store extra data alongside the value generated from the key.  See
 [Out-of-Band Data](#out-of-band-data) below for more information.
 
+The generator function can set `extra.expiresAt` (to a millisecond-precision
+Unix timestamp) to require that a new value be generated for the given key if
+it is retrieved after a certain date/time.
+
 ```js
 var ResourceStore = require('resource-store');
 

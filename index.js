@@ -32,6 +32,8 @@ function ResourceStore(backend, generator) {
     if (shouldCache || typeof shouldCache == 'undefined') {
         self._cached = {};
     }
+
+    self.expiresPrecision = 250;
 }
 
 util.inherits(ResourceStore, events.EventEmitter);
@@ -69,14 +71,38 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
             data = extraKeyInfo || {};
             data.key           = key;
             data.createStarted = self._running[keyStr];
+
             self.generator(key, data, function(err, value) {
                 if (err) {
                     cb(err);
                     return;
                 }
+
+                if (data.expiresAt) {
+                    var expiresAt =
+                        Math.floor(data.expiresAt / self.expiresPrecision)
+                        * self.expiresPrecision;
+                    if (self._expires[expiresAt]) {
+                        self._expires[expiresAt].push(key);
+                    } else {
+                        self._expires[expiresAt] = [key];
+                        var timer = setTimeout(function() {
+                            self._expires[expiresAt].forEach(function(key) {
+                                self.delete(key);
+                            });
+                            delete self._expires[expiresAt];
+                        }, Math.max(expiresAt - new Date, 0));
+                        timer.unref();
+                    }
+                }
+
+                // TODO refreshAt (call generator outside of queue; return
+                // cached value on get())
+
                 data.value         = value;
                 data.createEnded   = +new Date;
                 data.lastRetrieved = data.createEnded;
+
                 self.backend.set(keyStr, data, function(err) {
                     if (err) {
                         cb(err);
