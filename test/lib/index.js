@@ -107,7 +107,8 @@ exports.testList1 = function(done) {
         });
         exports.savedExtraData.lastRetrieved = extra.lastRetrieved;
         delete exports.savedExtraData.wasCached;
-    }, function(err) {
+    }, function(err, numEntries) {
+        should.not.exist(err);
         list.should.eql([
             {
                 key : {
@@ -122,6 +123,7 @@ exports.testList1 = function(done) {
                 extra : exports.savedExtraData
             }
         ]);
+        numEntries.should.equal(1);
         done();
     });
 };
@@ -156,7 +158,8 @@ exports.testLastRetrieved = function(opts, done) {
                     exports.savedExtraData.lastRetrieved,
                     opts.margin);
                 exports.savedExtraData.lastRetrieved = extra.lastRetrieved;
-            }, function(err) {
+            }, function(err, numEntries) {
+                should.not.exist(err);
                 list.should.eql([
                     {
                         key : {
@@ -171,6 +174,7 @@ exports.testLastRetrieved = function(opts, done) {
                         extra : exports.savedExtraData
                     }
                 ]);
+                numEntries.should.equal(1);
                 exports.generatorCalls.should.equal(0);
                 done();
             });
@@ -261,10 +265,11 @@ exports.testInterleaved = function(done) {
                 if (key.interleaved) {
                     foundInterleaved = true;
                 }
-            }, function(err) {
+            }, function(err, numEntries) {
                 should.not.exist(err);
                 listResults[foundInterleaved ? 'incl' : 'excl']++;
                 list(i + 1, listResults, cb);
+                numEntries.should.equal(foundInterleaved ? 6 : 5);
             });
         } else {
             cb(listResults);
