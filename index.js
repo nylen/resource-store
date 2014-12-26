@@ -6,6 +6,10 @@ JSON.stringifyCanonical = require('canonical-json');
 
 // generator(key, extra, cb(err, value))
 function ResourceStore(backend, generator) {
+    if (!(this instanceof ResourceStore)) {
+        return new ResourceStore(backend, generator);
+    }
+
     var self = this;
 
     if (backend && !generator) {
