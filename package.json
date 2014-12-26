@@ -2,7 +2,7 @@
     "name"        : "resource-store",
     "author"      : "James Nylen <jnylen@gmail.com>",
     "description" : "Caching/memoization library with multiple storage backends.",
-    "version"     : "0.0.1",
+    "version"     : "0.0.2",
     "repository"  : {
         "type" : "git",
         "url"  : "https://github.com/nylen/resource-store"
