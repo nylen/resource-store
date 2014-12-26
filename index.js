@@ -112,7 +112,9 @@ ResourceStore.prototype._delete = function(key, keyStr, cb) {
         if (self._cached) {
             delete self._cached[keyStr];
         }
-        cb(err);
+        if (typeof cb == 'function') {
+            cb(err);
+        }
     });
 };
 
