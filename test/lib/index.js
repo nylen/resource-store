@@ -139,6 +139,10 @@ exports.testLastRetrieved = function(opts, done) {
                 _savedBy : exports.savedBy
             });
             extra.wasCached.should.eql(true);
+            extra.lastRetrieved.should.be.approximately(
+                +new Date,
+                opts.margin);
+            exports.savedExtraData.lastRetrieved = extra.lastRetrieved;
 
             var list = [];
             exports.store.list(function(err, key, value, extra) {
@@ -149,7 +153,7 @@ exports.testLastRetrieved = function(opts, done) {
                 });
 
                 extra.lastRetrieved.should.be.approximately(
-                    exports.savedExtraData.lastRetrieved + opts.timeout,
+                    exports.savedExtraData.lastRetrieved,
                     opts.margin);
                 exports.savedExtraData.lastRetrieved = extra.lastRetrieved;
             }, function(err) {

@@ -60,6 +60,7 @@ describe('ResourceStore with FileBackend', function() {
     });
 
     it('should touch the file for an entry when it is retrieved', function(done) {
+        this.timeout(5000);
         // Instead of having a long delay since my filesystem stores mtimes to
         // the nearest second, back-date the mtime then make sure it gets reset.
         var ts = new Date / 1000 - 30;
@@ -67,7 +68,7 @@ describe('ResourceStore with FileBackend', function() {
             path.join(storePath, lib.savedExtraData.baseFilename + '.json'),
             ts, ts);
         lib.testLastRetrieved({
-            timeout : 250,
+            timeout : 2000,
             margin  : 1000
         }, done);
     });
