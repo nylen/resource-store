@@ -137,7 +137,7 @@ calls to `get` are made concurrently for the same key.  Set
 the backend is effectively instantaneous.
 
 Pseudocode (to avoid
-[http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony](releasing Zalgo),
+[releasing Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony),
 all of these methods should be asynchronous in real implementations):
 
 ```js
