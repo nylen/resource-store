@@ -5,8 +5,6 @@ var fs            = require('fs-extra'),
     path          = require('path'),
     should        = require('should');
 
-JSON.stringifyCanonical = require('canonical-json');
-
 describe('ResourceStore with FileBackend', function() {
     var storePath = path.join(__dirname, 'store');
 

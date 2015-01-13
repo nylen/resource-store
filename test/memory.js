@@ -3,8 +3,6 @@ var ResourceStore = require('../index'),
     mocha         = require('mocha'),
     should        = require('should');
 
-JSON.stringifyCanonical = require('canonical-json');
-
 describe('ResourceStore with MemoryBackend', function() {
     before(function() {
         lib.store = new ResourceStore(lib.storeCallback);
