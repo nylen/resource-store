@@ -1,38 +1,38 @@
 {
-    "name"        : "resource-store",
-    "author"      : "James Nylen <jnylen@gmail.com>",
-    "description" : "Caching/memoization library with multiple storage backends.",
-    "version"     : "0.0.2",
-    "repository"  : {
-        "type" : "git",
-        "url"  : "https://github.com/nylen/resource-store"
-    },
-    "bugs" : {
-        "url" : "https://github.com/nylen/resource-store/issues"
-    },
-    "license"  : "MIT",
-    "keywords" : [
-        "resource",
-        "store",
-        "memoize",
-        "cache",
-        "transformation"
-    ],
-    "main"    : "./index",
-    "scripts" : {
-        "test" : "node node_modules/.bin/mocha"
-    },
-    "devDependencies" : {
-        "async"     : "~0.9.0",
-        "coveralls" : "~2.11.2",
-        "istanbul"  : "~0.3.5",
-        "mocha"     : "~1.21.4",
-        "should"    : "~4.0.4"
-    },
-    "dependencies" : {
-        "canonical-json" : "0.0.4",
-        "clone"          : "~0.1.18",
-        "fs-extra"       : "~0.11.1",
-        "walker"         : "~1.0.6"
-    }
+  "name": "resource-store",
+  "author": "James Nylen <jnylen@gmail.com>",
+  "description": "Caching/memoization library with multiple storage backends.",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nylen/resource-store"
+  },
+  "bugs": {
+    "url": "https://github.com/nylen/resource-store/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "resource",
+    "store",
+    "memoize",
+    "cache",
+    "transformation"
+  ],
+  "main": "./index",
+  "scripts": {
+    "test": "node node_modules/.bin/mocha"
+  },
+  "devDependencies": {
+    "async": "~0.9.0",
+    "coveralls": "~2.11.2",
+    "istanbul": "~0.3.5",
+    "mocha": "~1.21.4",
+    "should": "~4.0.4"
+  },
+  "dependencies": {
+    "canonical-json": "0.0.4",
+    "clone": "~0.1.18",
+    "fs-extra": "~0.11.1",
+    "walker": "~1.0.6"
+  }
 }
