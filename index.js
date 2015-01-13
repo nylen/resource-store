@@ -42,6 +42,10 @@ backends.addTo(ResourceStore);
 ResourceStore.prototype.get = function(key, cb) {
     var self = this;
 
+    if (typeof cb != 'function') {
+        throw new Error('Callback function not given.');
+    }
+
     self._addTask(key, '_get', cb);
 };
 
