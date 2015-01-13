@@ -8,11 +8,13 @@ exports.generatorCalls = 0;
 
 exports.store          = null;
 exports.savedExtraData = null;
+exports.firstValue     = null;
+exports.valueTemplate  = null;
 
 exports.storeCallback = function(key, extra, cb) {
     exports.generatorCalls++;
     setTimeout(function() {
-        var value = clone(key);
+        var value = exports.valueTemplate || clone(key);
         if (value && typeof value == 'object') {
             value._savedBy = exports.savedBy;
         }
@@ -21,20 +23,34 @@ exports.storeCallback = function(key, extra, cb) {
 };
 
 exports.testStoreBasicEntries = function(opts, done) {
-    exports.store.get({
-        prop1 : 'value1',
-        prop2 : 'value2'
-    }, function(err, value, extra) {
-        should.not.exist(err);
-        value.should.eql({
+    var key = {
+            prop1 : 'value1',
+            prop2 : 'value2'
+        },
+        expectedValue = {
             prop1    : 'value1',
             prop2    : 'value2',
             _savedBy : exports.savedBy
-        });
+        };
+
+    exports.valueTemplate = clone(key);
+
+    exports.store.get(key, function(err, value, extra) {
+        should.not.exist(err);
+        value.should.eql(expectedValue);
+        if (opts.mutable) {
+            value.should.equal(exports.valueTemplate);
+            exports.firstValue = value;
+        }
+        exports.valueTemplate = null;
         exports.generatorCalls.should.equal(1);
 
         exports.savedExtraData = clone(extra);
         exports.savedExtraData.wasCached = true;
+
+        if (opts.mutable) {
+            extra = clone(extra);
+        }
 
         var date   = +new Date,
             margin = opts.margin; // msec
@@ -88,6 +104,9 @@ exports.testRetrieveStoredEntries = function(key, opts, done) {
             prop2    : 'value2',
             _savedBy : exports.savedBy
         });
+        if (opts.mutable) {
+            value.should.equal(exports.firstValue);
+        }
         if (opts.margin) {
             extra.lastRetrieved.should.be.approximately(
                 +new Date,
@@ -100,7 +119,11 @@ exports.testRetrieveStoredEntries = function(key, opts, done) {
     });
 };
 
-exports.testList1 = function(done) {
+exports.testList1 = function(opts, done) {
+    if (typeof opts == 'function') {
+        done = opts;
+        opts = {};
+    }
     var list = [];
     exports.store.list(function(err, key, value, extra) {
         list.push({
@@ -127,6 +150,9 @@ exports.testList1 = function(done) {
             }
         ]);
         numEntries.should.equal(1);
+        if (opts.mutable) {
+            list[0].value.should.equal(exports.firstValue);
+        }
         done();
     });
 };

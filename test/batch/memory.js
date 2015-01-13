@@ -1,24 +1,16 @@
-var ResourceStore = require('../index'),
-    lib           = require('./lib'),
-    mocha         = require('mocha'),
-    should        = require('should');
+var ResourceStore = require('../../index'),
+    lib           = require('../lib'),
+    mocha         = require('mocha');
 
-describe('ResourceStore with MemoryBackend', function() {
-    before(function() {
-        lib.store = new ResourceStore(lib.storeCallback);
-    });
-
-    beforeEach(function() {
-        lib.generatorCalls = 0;
-    });
-
+exports.queueTests = function(opts) {
     it('should be created correctly', function() {
         lib.store.backend.constructor.should.equal(ResourceStore.MemoryBackend);
     });
 
     it('should store basic entries', function(done) {
         lib.testStoreBasicEntries({
-            margin : 10
+            margin  : 10,
+            mutable : opts.mutable
         }, done);
     });
 
@@ -27,7 +19,8 @@ describe('ResourceStore with MemoryBackend', function() {
             prop1 : 'value1',
             prop2 : 'value2'
         }, {
-            margin : 10
+            margin  : 10,
+            mutable : opts.mutable
         }, done);
     });
 
@@ -36,12 +29,13 @@ describe('ResourceStore with MemoryBackend', function() {
             prop2 : 'value2',
             prop1 : 'value1'
         }, {
-            margin : 20
+            margin  : 20,
+            mutable : opts.mutable
         }, done);
     });
 
     it('should list stored entries', function(done) {
-        lib.testList1(done);
+        lib.testList1({ mutable : opts.mutable }, done);
     });
 
     it('should set lastRetrieved for an entry when it is retrieved', function(done) {
@@ -79,4 +73,4 @@ describe('ResourceStore with MemoryBackend', function() {
             lib.testNonObjectKeys(done);
         }, done);
     });
-});
+};

@@ -95,7 +95,7 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
 
         } else {
             // The backend already had the resource for this key
-            data.wasCached = true;
+            data = util._extend({ wasCached : true }, data);
             cb(err, data.value, data);
 
         }

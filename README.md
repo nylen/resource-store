@@ -207,3 +207,27 @@ the requested keys, starting at the directory `dir` and creating subdirectories
 as needed.
 
 `new MemoryBackend()` stores data in memory in a plain old JavaScript object.
+
+## Mutability
+
+When using the `MemoryBackend`, values stored in a `ResourceStore` are mutable
+by default.  This has the following consequences:
+
+- The value returned by the generator `===` the value returned to `get()` and
+  `list()` for the same key
+- Object prototype chains, function properties, etc. are preserved
+- The `ResourceStore` can be used to cache database connections or other
+  complex objects with internal state.
+
+If you'd rather have an immutable data store instead, construct the
+`ResourceStore` using a `FileBackend`, or using an immutable `MemoryBackend` as
+follows:
+
+```js
+var store = new ResourceStore(
+    new ResourceStore.MemoryBackend({ mutable : false }),
+    function generator(key, extra, cb) { ... });
+```
+
+With an immutable backend, the `ResourceStore` will only be able to store
+values that can be represented in JSON.
