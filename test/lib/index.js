@@ -24,9 +24,9 @@ exports.testStoreBasicEntries = function(opts, done) {
     exports.store.get({
         prop1 : 'value1',
         prop2 : 'value2'
-    }, function(err, data, extra) {
+    }, function(err, value, extra) {
         should.not.exist(err);
-        data.should.eql({
+        value.should.eql({
             prop1    : 'value1',
             prop2    : 'value2',
             _savedBy : exports.savedBy
@@ -81,9 +81,9 @@ exports.testRetrieveStoredEntries = function(key, opts, done) {
         done = opts;
         opts = {};
     }
-    exports.store.get(key, function(err, data, extra) {
+    exports.store.get(key, function(err, value, extra) {
         should.not.exist(err);
-        data.should.eql({
+        value.should.eql({
             prop1    : 'value1',
             prop2    : 'value2',
             _savedBy : exports.savedBy
@@ -136,9 +136,9 @@ exports.testLastRetrieved = function(opts, done) {
         exports.store.get({
             prop1 : 'value1',
             prop2 : 'value2'
-        }, function(err, data, extra) {
+        }, function(err, value, extra) {
             should.not.exist(err);
-            data.should.eql({
+            value.should.eql({
                 prop1    : 'value1',
                 prop2    : 'value2',
                 _savedBy : exports.savedBy
@@ -203,8 +203,8 @@ exports.testConcurrentGets = function(done) {
         for (var k = 0; k < 5; k++) {
             (function(key) {
                 numGets++;
-                exports.store.get(key, function(err, data, extra) {
-                    data.should.eql({
+                exports.store.get(key, function(err, value, extra) {
+                    value.should.eql({
                         concurrent : key.concurrent,
                         _savedBy   : exports.savedBy
                     });
@@ -416,9 +416,9 @@ exports.withTimeout = function(newTimeout, task, done) {
 exports.testNonObjectKeys = function(done) {
     async.series([
         function(next) {
-            exports.store.get('string-key', function(err, data, extra) {
+            exports.store.get('string-key', function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal('string-key');
+                value.should.equal('string-key');
                 exports.generatorCalls.should.equal(1);
                 extra.key.should.equal('string-key');
                 extra.value.should.equal('string-key');
@@ -427,9 +427,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get('string-key', function(err, data, extra) {
+            exports.store.get('string-key', function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal('string-key');
+                value.should.equal('string-key');
                 exports.generatorCalls.should.equal(1);
                 extra.key.should.equal('string-key');
                 extra.value.should.equal('string-key');
@@ -438,9 +438,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(null, function(err, data, extra) {
+            exports.store.get(null, function(err, value, extra) {
                 should.not.exist(err);
-                should(data).equal(null);
+                should(value).equal(null);
                 exports.generatorCalls.should.equal(2);
                 should(extra.key).equal(null);
                 should(extra.value).equal(null);
@@ -449,9 +449,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(null, function(err, data, extra) {
+            exports.store.get(null, function(err, value, extra) {
                 should.not.exist(err);
-                should(data).equal(null);
+                should(value).equal(null);
                 exports.generatorCalls.should.equal(2);
                 should(extra.key).equal(null);
                 should(extra.value).equal(null);
@@ -475,9 +475,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(true, function(err, data, extra) {
+            exports.store.get(true, function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal(true);
+                value.should.equal(true);
                 exports.generatorCalls.should.equal(3);
                 extra.key.should.equal(true);
                 extra.value.should.equal(true);
@@ -486,9 +486,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(true, function(err, data, extra) {
+            exports.store.get(true, function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal(true);
+                value.should.equal(true);
                 exports.generatorCalls.should.equal(3);
                 extra.key.should.equal(true);
                 extra.value.should.equal(true);
@@ -497,9 +497,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(42, function(err, data, extra) {
+            exports.store.get(42, function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal(42);
+                value.should.equal(42);
                 exports.generatorCalls.should.equal(4);
                 extra.key.should.equal(42);
                 extra.value.should.equal(42);
@@ -508,9 +508,9 @@ exports.testNonObjectKeys = function(done) {
         },
 
         function(next) {
-            exports.store.get(42, function(err, data, extra) {
+            exports.store.get(42, function(err, value, extra) {
                 should.not.exist(err);
-                data.should.equal(42);
+                value.should.equal(42);
                 exports.generatorCalls.should.equal(4);
                 extra.key.should.equal(42);
                 extra.value.should.equal(42);
