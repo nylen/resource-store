@@ -6,9 +6,9 @@ backends.
 ## Usage
 
 Create a `ResourceStore` object with a generator callback.  Then, request
-values from it by calling the `get` method and passing JavaScript objects as
-keys.  If the given key is not already cached, the generator function will be
-called to generate its value.
+values from it by calling the `get` method and passing JavaScript objects or
+primitives as keys.  If the given key is not already cached, the generator
+function will be called to generate its value.
 
 The generator function receives keys and generates the values associated with
 them.  For a given key, the value it returns should always be the same.

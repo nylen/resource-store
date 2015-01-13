@@ -1,4 +1,5 @@
-var clone  = require('clone'),
+var async  = require('async'),
+    clone  = require('clone'),
     should = require('should');
 
 exports.savedBy        = 'saved by ResourceStore during tests';
@@ -12,7 +13,9 @@ exports.storeCallback = function(key, extra, cb) {
     exports.generatorCalls++;
     setTimeout(function() {
         var value = clone(key);
-        value._savedBy = exports.savedBy;
+        if (value && typeof value == 'object') {
+            value._savedBy = exports.savedBy;
+        }
         cb(null, value);
     }, exports.timeout);
 };
@@ -393,4 +396,120 @@ exports.testList2 = function(done) {
         ]);
         done();
     });
+};
+
+exports.withTimeout = function(newTimeout, task, done) {
+    var oldTimeout = exports.timeout;
+    exports.timeout = newTimeout;
+    task(function() {
+        exports.timeout = oldTimeout;
+        done();
+    });
+};
+
+exports.testNonObjectKeys = function(done) {
+    async.series([
+        function(next) {
+            exports.store.get('string-key', function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal('string-key');
+                exports.generatorCalls.should.equal(1);
+                extra.key.should.equal('string-key');
+                extra.value.should.equal('string-key');
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get('string-key', function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal('string-key');
+                exports.generatorCalls.should.equal(1);
+                extra.key.should.equal('string-key');
+                extra.value.should.equal('string-key');
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(null, function(err, data, extra) {
+                should.not.exist(err);
+                should(data).equal(null);
+                exports.generatorCalls.should.equal(2);
+                should(extra.key).equal(null);
+                should(extra.value).equal(null);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(null, function(err, data, extra) {
+                should.not.exist(err);
+                should(data).equal(null);
+                exports.generatorCalls.should.equal(2);
+                should(extra.key).equal(null);
+                should(extra.value).equal(null);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.delete(null, function(err) {
+                should.not.exist(err);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.delete(null, function(err) {
+                should.exist(err);
+                err.message.should.match(/^The specified key was not found in the/);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(true, function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal(true);
+                exports.generatorCalls.should.equal(3);
+                extra.key.should.equal(true);
+                extra.value.should.equal(true);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(true, function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal(true);
+                exports.generatorCalls.should.equal(3);
+                extra.key.should.equal(true);
+                extra.value.should.equal(true);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(42, function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal(42);
+                exports.generatorCalls.should.equal(4);
+                extra.key.should.equal(42);
+                extra.value.should.equal(42);
+                next();
+            });
+        },
+
+        function(next) {
+            exports.store.get(42, function(err, data, extra) {
+                should.not.exist(err);
+                data.should.equal(42);
+                exports.generatorCalls.should.equal(4);
+                extra.key.should.equal(42);
+                extra.value.should.equal(42);
+                next();
+            });
+        }
+    ], done);
 };

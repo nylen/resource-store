@@ -71,4 +71,10 @@ describe('ResourceStore with MemoryBackend', function() {
     it('should list stored entries again', function(done) {
         lib.testList2(done);
     });
+
+    it('should allow getting and removing non-object keys', function(done) {
+        lib.withTimeout(100, function(done) {
+            lib.testNonObjectKeys(done);
+        }, done);
+    });
 });
