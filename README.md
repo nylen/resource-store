@@ -1,7 +1,11 @@
-# resource-store [![Build status](https://img.shields.io/travis/nylen/resource-store.svg?style=flat)](https://travis-ci.org/nylen/resource-store) [![npm package](http://img.shields.io/npm/v/resource-store.svg?style=flat)](https://www.npmjs.org/package/resource-store)
+# resource-store
 
 `resource-store` is a Node.js caching/memoization library with multiple storage
 backends.
+
+[![npm package](http://img.shields.io/npm/v/resource-store.svg?style=flat)](https://www.npmjs.org/package/resource-store)
+[![Build status](https://img.shields.io/travis/nylen/resource-store.svg?style=flat)](https://travis-ci.org/nylen/resource-store)
+[![Coverage](https://img.shields.io/coveralls/nylen/resource-store.svg?style=flat)](https://coveralls.io/r/nylen/resource-store)
 
 ## Usage
 
