@@ -84,6 +84,10 @@ describe('ResourceStore with FileBackend', function() {
         }, done);
     });
 
+    it('should delete entries without a callback', function(done) {
+        lib.testDeleteWithoutCallback(done);
+    });
+
     it('should handle interleaved gets and deletes', function(done) {
         this.timeout(5000);
         lib.testInterleaved(done);

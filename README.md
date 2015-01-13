@@ -59,7 +59,7 @@ store.get({ prop1 : 'value1' }, function(err, value, extra) {
 });
 ```
 
-### delete(key, cb)
+### delete(key, [cb])
 
 Deletes a value from the store.  If the value specified by `key` does not exist
 then an error will be returned.

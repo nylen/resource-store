@@ -235,6 +235,12 @@ exports.testDelete = function(isKeyPresent, done) {
     });
 };
 
+exports.testDeleteWithoutCallback = function(done) {
+    var key = { concurrent : 'test2' };
+    exports.store.delete(key);
+    setTimeout(done, 100);
+};
+
 exports.testInterleaved = function(done) {
     var calls     = 0,
         doneCalls = 0,

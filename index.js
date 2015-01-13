@@ -106,7 +106,7 @@ ResourceStore.prototype._get = function(key, keyStr, cb) {
 ResourceStore.prototype.delete = function(key, cb) {
     var self = this;
 
-    self._addTask(key, '_delete', cb);
+    self._addTask(key, '_delete', cb || function() { });
 };
 
 ResourceStore.prototype._delete = function(key, keyStr, cb) {
@@ -116,9 +116,7 @@ ResourceStore.prototype._delete = function(key, keyStr, cb) {
         if (self._cached) {
             delete self._cached[keyStr];
         }
-        if (typeof cb == 'function') {
-            cb(err);
-        }
+        cb(err);
     });
 };
 
